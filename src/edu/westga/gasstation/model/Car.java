@@ -2,6 +2,8 @@ package edu.westga.gasstation.model;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import edu.westga.gasstation.controller.GasStationController;
+
 /**
  * The Car class.
  * 
@@ -14,9 +16,12 @@ public class Car implements Runnable {
 	private Pump openPump;
 	private GasStation gasStation;
 	private Attendant attendant;
+	private String name;
+	private int randomAmount;
 
 	private Car() {
 		this.keepWorking = true;
+		this.randomAmount = 0;
 	}
 
 	/**
@@ -27,7 +32,7 @@ public class Car implements Runnable {
 	 * @param attendant
 	 *            The cashier of the gas station.
 	 */
-	public Car(GasStation gasStation, Attendant attendant) {
+	public Car(GasStation gasStation, Attendant attendant, String name) {
 
 		this();
 
@@ -35,10 +40,13 @@ public class Car implements Runnable {
 			throw new IllegalArgumentException("Gas Station is null");
 		} else if (attendant == null) {
 			throw new IllegalArgumentException("Attendant is null");
+		} else if (name == null) {
+			throw new IllegalArgumentException("name is null");
 		}
 
 		this.gasStation = gasStation;
 		this.attendant = attendant;
+		this.name = name;
 
 	}
 
@@ -56,44 +64,54 @@ public class Car implements Runnable {
 
 		while (this.keepWorking) {
 
-			if (this.checkIfAnyPumpsAreOpen()) {
-
-				this.pumpGas();
-				this.payCashier();
-
-			}
-
-		}
-
-	}
-
-	private void payCashier() {
-
-		while (this.attendant.isAttendantBusy()) {
+			this.pullUpToPump();
 			try {
-				this.wait();
+				Thread.sleep(2000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+
 		}
 
-		this.notifyAll();
-		this.attendant.payForGas(this.openPump);
+	}
+
+	private synchronized void payCashier() {
+
+		this.attendant.payForGas();
+		System.out.println(this.name + " has paid cashier for " + this.randomAmount + " gallon(s) of gas.");
 
 	}
 
-	private void pumpGas() {
+	private synchronized void pullUpToPump() {
 
-		this.openPump = this.gasStation.findOpenPump();
-
-		int randomAmount = ThreadLocalRandom.current().nextInt(1, 3 + 1);
-
-		this.openPump.pumpGas(randomAmount);
-
+		if (this.gasStation.findOpenPumps().size() != 0) {
+			this.openPump = this.gasStation.findOpenPumps().get(0);
+			this.openPump.claimPump();
+			this.pumpGas();
+		}
 	}
 
-	private boolean checkIfAnyPumpsAreOpen() {
-		return this.gasStation.areThereAnyOpenPumps();
+	private synchronized void pumpGas() {
+
+		System.out.println(this.name + " has pulled up to pump " + this.openPump.getPumpID());
+
+		this.randomAmount = ThreadLocalRandom.current().nextInt(1, 3 + 1);
+
+		this.openPump.sendSelectedAmountToAttendant(this.randomAmount);
+
+		if (this.openPump.isPumpActive()) {
+			this.openPump.pumpGas(this.randomAmount);
+
+			System.out.println(this.name + " has pumped " + this.randomAmount + " gallon(s) of gas from pump "
+					+ this.openPump.getPumpID());
+
+			this.payCashier();
+			int pump = this.openPump.leavePump();
+
+			System.out.println(this.name + " has left pump " + pump);
+
+		}
+
 	}
 
 	/**

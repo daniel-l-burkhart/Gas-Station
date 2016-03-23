@@ -6,10 +6,9 @@ package edu.westga.gasstation.model;
  * @author Daniel Burkhart
  * @version Spring 2016
  */
-public class Tank implements Runnable {
+public class Tank {
 
 	private int amountInTank;
-	private boolean keepWorking;
 
 	/**
 	 * The tank constructor that initializes variables.
@@ -17,7 +16,6 @@ public class Tank implements Runnable {
 	public Tank() {
 
 		this.amountInTank = 50;
-		this.keepWorking = true;
 
 	}
 
@@ -27,39 +25,38 @@ public class Tank implements Runnable {
 	 * @param amount
 	 *            The amount of gasoline being dispensed.
 	 */
-	public void withdrawGasoline(int amount) {
+	public synchronized void withdrawGasoline(int amount) {
 
 		if (amount < 0) {
 			throw new IllegalArgumentException("Amount cannot be negative");
 		}
 
-		if (this.amountInTank - amount < 0) {
+		if ((this.amountInTank - amount) < 0) {
 			throw new IllegalStateException("Tank is overdrawn. Customer is angry");
 		}
 
 		this.amountInTank -= amount;
 	}
 
+
 	/**
-	 * The run method of the thread.
+	 * Fills the tank to the appropriate amount
+	 * 
+	 * @param amountInTank
+	 *            The amount in tank
 	 */
-	@Override
-	public void run() {
-
-		while (this.keepWorking) {
-
-			if (this.amountInTank < 10) {
-				this.amountInTank = 50;
-			}
-		}
-
+	public void fillTank() {
+		this.amountInTank = 50;
 	}
 
 	/**
-	 * Stops the thread.
+	 * Gets the amount in the take
+	 * 
+	 * @return
 	 */
-	public void stop() {
-		this.keepWorking = false;
+	public int getAmount() {
+
+		return this.amountInTank;
 	}
 
 }

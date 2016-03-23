@@ -11,18 +11,15 @@ import java.util.ArrayList;
 public class GasStation {
 
 	private ArrayList<Pump> pumps;
-	private Tank tank;
-	private Thread tankThread;
+
+	private ArrayList<Pump> openPumps;
 
 	/**
 	 * Private constructor to ensure use of parameterization
 	 */
 	private GasStation() {
-		this.tank = new Tank();
 
-		this.tankThread = new Thread(this.tank);
 		this.pumps = new ArrayList<Pump>();
-		this.tankThread.start();
 	}
 
 	/**
@@ -31,16 +28,20 @@ public class GasStation {
 	 * @param numberOfPumps
 	 *            the number of pumps at this gas station.
 	 */
-	public GasStation(int numberOfPumps) {
+	public GasStation(int numberOfPumps, Attendant attendant, Tank tank) {
 
 		this();
 
-		if (numberOfPumps <= 0) {
+		if (attendant == null) {
+			throw new IllegalArgumentException("Attendant is null");
+		} else if (tank == null) {
+			throw new IllegalArgumentException("Tank is null");
+		} else if (numberOfPumps <= 0) {
 			throw new IllegalArgumentException("Cannot have negative pumps");
 		}
 
 		for (int i = 0; i < numberOfPumps; i++) {
-			this.pumps.add(new Pump(this.tank));
+			this.pumps.add(new Pump(i, attendant, tank));
 		}
 
 	}
@@ -50,9 +51,9 @@ public class GasStation {
 	 * 
 	 * @return True if there is an open pump, false otherwise.
 	 */
-	public boolean areThereAnyOpenPumps() {
+	public synchronized boolean areThereAnyOpenPumps() {
 
-		if (findOpenPump() != null) {
+		if (findOpenPumps().size() != 0) {
 			return true;
 		}
 
@@ -64,23 +65,21 @@ public class GasStation {
 	 * 
 	 * @return The open pump if exist.
 	 */
-	public Pump findOpenPump() {
+	public synchronized ArrayList<Pump> findOpenPumps() {
 
-		Pump openPump = null;
+		this.openPumps = new ArrayList<Pump>();
 
 		for (Pump currentPump : this.pumps) {
 
 			if (currentPump.getStatus()) {
-				openPump = currentPump;
+
+				this.openPumps.add(currentPump);
 			}
 
 		}
 
-		return openPump;
-	}
+		return this.openPumps;
 
-	public void closeStation() {
-		this.tank.stop();
 	}
 
 }

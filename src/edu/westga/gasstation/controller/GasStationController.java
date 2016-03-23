@@ -1,19 +1,85 @@
-/**
- * 
- */
 package edu.westga.gasstation.controller;
 
+import edu.westga.gasstation.model.Attendant;
+import edu.westga.gasstation.model.Car;
+import edu.westga.gasstation.model.GasStation;
+import edu.westga.gasstation.model.Tank;
+
 /**
+ * Controller class for gas station.
+ * 
  * @author danielburkhart
- *
+ * @version Spring 2016
  */
 public class GasStationController {
 
+	private GasStation gasStation;
+	private Attendant attendant;
+	private Car adamCar;
+	private Car brianCar;
+	private Car jamesCar;
+	private Car jonCar;
+	private Thread adamThread;
+	private Thread brianThread;
+	private Thread jamesThread;
+	private Thread jonThread;
+	private Thread gasStationThread;
+	private Tank tank;
+
 	/**
-	 * 
+	 * Initializes all the variables
 	 */
 	public GasStationController() {
-		// TODO Auto-generated constructor stub
+
+		
+		this.tank = new Tank();
+
+		this.attendant = new Attendant(this.tank);
+		this.gasStation = new GasStation(2, this.attendant, this.tank);
+	
+
+		this.adamCar = new Car(this.gasStation, this.attendant, "Adam");
+		this.brianCar = new Car(this.gasStation, this.attendant, "Bryan");
+		this.jamesCar = new Car(this.gasStation, this.attendant, "James");
+		this.jonCar = new Car(this.gasStation, this.attendant, "Jon");
+
+		this.adamThread = new Thread(this.adamCar);
+		this.brianThread = new Thread(this.brianCar);
+		this.jamesThread = new Thread(this.jamesCar);
+		this.jonThread = new Thread(this.jonCar);
+
 	}
 
+	/**
+	 * Starts all the threads of the gas station
+	 */
+	public void startGasStation() {
+
+		System.out.println("Begin");
+
+		this.adamThread.start();
+		this.brianThread.start();
+		this.jamesThread.start();
+		this.jonThread.start();
+
+
+		try {
+			Thread.sleep(15 * 1000);
+		} catch (InterruptedException exception) {
+			exception.printStackTrace();
+		}
+
+		this.stopGasStation();
+
+	}
+
+	private void stopGasStation() {
+
+		this.adamCar.stop();
+		this.brianCar.stop();
+		this.jamesCar.stop();
+		this.jonCar.stop();
+
+		System.out.println("End");
+	}
 }
