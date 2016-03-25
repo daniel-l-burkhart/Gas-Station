@@ -7,7 +7,7 @@ import edu.westga.gasstation.model.Tank;
 
 /**
  * Controller class for gas station.
- * 
+ *
  * @author danielburkhart
  * @version Spring 2016
  */
@@ -26,6 +26,8 @@ public class GasStationController {
 	private Thread gasStationThread;
 	private Tank tank;
 
+	private static final int NUMBER_OF_PUMPS = 2;
+
 	/**
 	 * Initializes all the variables
 	 */
@@ -34,7 +36,7 @@ public class GasStationController {
 		this.tank = new Tank();
 
 		this.attendant = new Attendant(this.tank);
-		this.gasStation = new GasStation(2, this.attendant, this.tank);
+		this.gasStation = new GasStation(NUMBER_OF_PUMPS, this.attendant, this.tank);
 
 		this.adamCar = new Car(this.gasStation, this.attendant, "Adam");
 		this.brianCar = new Car(this.gasStation, this.attendant, "Bryan");

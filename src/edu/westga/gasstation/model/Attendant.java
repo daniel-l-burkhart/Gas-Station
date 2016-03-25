@@ -2,11 +2,15 @@ package edu.westga.gasstation.model;
 
 /**
  * Cashier class.
- * 
+ *
  * @author Daniel Burkhart
  * @version Spring 2016
  */
 public class Attendant implements Runnable {
+
+	/*
+	 *
+	 */
 
 	private boolean busy;
 	private boolean keepWorking;
@@ -28,7 +32,7 @@ public class Attendant implements Runnable {
 
 	/**
 	 * Checks if attendant is busy.
-	 * 
+	 *
 	 * @return true if attendant is busy, false otherwise.
 	 */
 	public synchronized boolean isAttendantBusy() {
@@ -38,7 +42,8 @@ public class Attendant implements Runnable {
 	/**
 	 * Pays for gas.
 	 */
-	public synchronized void payForGas() {
+	public synchronized void payForGas(Pump pump) {
+
 
 		while (this.busy) {
 
@@ -90,8 +95,10 @@ public class Attendant implements Runnable {
 
 		this.notifyAll();
 		this.busy = true;
+
 		this.currentPump = pump;
-		this.currentPump.activatePump(this);
+
+		//this.currentPump.activatePump(this);
 
 		System.out.println("Pump " + pump.getPumpID() + " has selected " + randomAmount + " gallons of gas.");
 		this.busy = false;

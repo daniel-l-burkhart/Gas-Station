@@ -5,7 +5,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * The Car class.
- * 
+ *
  * @author Daniel Burkhart
  * @version Spring 2016
  */
@@ -24,7 +24,7 @@ public class Car implements Runnable {
 
 	/**
 	 * Constructor that initializes car object
-	 * 
+	 *
 	 * @param gasStation
 	 *            The gas station the car is at
 	 * @param attendant
@@ -62,7 +62,7 @@ public class Car implements Runnable {
 
 		while (this.keepWorking) {
 
-			//this.gasStation.printPumps();
+			// this.gasStation.printPumps();
 
 			this.pullUpToPump();
 			try {
@@ -75,47 +75,36 @@ public class Car implements Runnable {
 
 	}
 
-	private synchronized void payCashier() {
+	private synchronized void payCashier(Pump pump) {
 
-		this.attendant.payForGas();
+		this.attendant.payForGas(pump);
 		System.out.println(this.name + " has paid cashier for " + this.randomAmount + " gallon(s) of gas.");
 
 	}
 
 	private synchronized void pullUpToPump() {
 
-		/*
-		 * TODO: This method wrong.
-		 * 
-		 * For some reason only two cars are ever using the pumps, out of the 4
-		 * currently in play
-		 */
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 
-		// if (!this.gasStation.areThereAnyOpenPumps()) {
-		// this.gasStation.addCarToQueue(this);
-		// }
+		Pump openPump = null;
 
-		while (this.gasStation.findOpenPumps().size() == 0) {
-			try {
-				System.out.println("No open pumps. Car is waiting.");
-				this.wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		for (Pump pump : this.gasStation.getPumps()) {
+			if (pump.getStatus()) {
+				openPump = pump;
 			}
 		}
 
-		this.notifyAll();
+		if (openPump == null) {
 
-		if (this.gasStation.findOpenPumps().size() != 0) {
-
-			Pump openPump = this.gasStation.getOpenPump();
-
-			if (openPump.getStatus()) {
-				openPump.claimPump(this);
-				this.pumpGas(openPump);
-			}
-
+			openPump = this.gasStation.getPumps()
+					.get(ThreadLocalRandom.current().nextInt(0, this.gasStation.getPumps().size()));
 		}
+
+		this.pumpGas(openPump);
 
 	}
 
@@ -127,21 +116,18 @@ public class Car implements Runnable {
 			e.printStackTrace();
 		}
 
-		System.out.println(this.name + " has pulled up to pump " + openPump.getPumpID());
-
 		this.randomAmount = ThreadLocalRandom.current().nextInt(1, 3 + 1);
 
 		openPump.sendSelectedAmountToAttendant(this.randomAmount);
 
 		if (openPump.isPumpActive()) {
 
-			openPump.pumpGas(this.randomAmount);
+			openPump.pumpGas(this.randomAmount, this.name);
 
 			System.out.println(this.name + " has pumped " + this.randomAmount + " gallon(s) of gas from pump "
 					+ openPump.getPumpID());
 
-			this.payCashier();
-			openPump.leavePump();
+			this.payCashier(openPump);
 
 			System.out.println(this.name + " has left pump " + openPump.getPumpID());
 

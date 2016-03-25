@@ -1,10 +1,11 @@
 package edu.westga.gasstation.model;
 
 import java.util.ArrayList;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Model class that controls one single pump at the gas station
- * 
+ *
  * @author Daniel Burkhart
  * @version Spring 2016
  */
@@ -16,11 +17,15 @@ public class Pump {
 	private boolean pumpActive;
 	private Tank tank;
 	private ArrayList<Car> queue;
+	private ReentrantLock lock;
 
 	/**
 	 * Private constructor ensuring use of parameterized constructor.
 	 */
 	private Pump() {
+
+		this.lock = new ReentrantLock(true);
+
 		this.pumpOpenStatus = true;
 		this.id = 0;
 		this.pumpActive = false;
@@ -28,9 +33,13 @@ public class Pump {
 
 	}
 
+	/*
+	 * Reentrant lock(true) fill gas
+	 */
+
 	/**
 	 * Constructor that initializes a tank's attributes
-	 * 
+	 *
 	 * @param tank
 	 *            The tank.
 	 */
@@ -52,20 +61,25 @@ public class Pump {
 
 	/**
 	 * Checks to see if pump is open
-	 * 
+	 *
 	 * @return True if pump is open false otherwise.
 	 */
 	public synchronized boolean getStatus() {
-		return this.pumpOpenStatus;
+		return this.lock.hasQueuedThreads();
 	}
 
 	/**
 	 * Pumps gas from the tank
-	 * 
+	 *
 	 * @param amount
 	 *            The amount to be withdrawn from the tank.
+	 * @param name
 	 */
-	public synchronized void pumpGas(int amount) {
+	public synchronized void pumpGas(int amount, String name) {
+
+		this.lock.lock();
+
+		System.out.println(name + " has pulled up to pump " + this.id);
 
 		if (this.pumpActive) {
 			if (amount < 0) {
@@ -74,6 +88,8 @@ public class Pump {
 
 			this.tank.withdrawGasoline(amount);
 		}
+
+		this.lock.unlock();
 	}
 
 	/**
@@ -107,17 +123,6 @@ public class Pump {
 	public void activatePump(Attendant attendant) {
 		this.pumpActive = true;
 		System.out.println("Attendant has unlocked pump " + this.id);
-	}
-
-	public synchronized void claimPump(Car car) {
-		
-		
-		if (this.pumpOpenStatus == false) {
-			throw new IllegalStateException("Pump is already claimed");
-		}
-		
-		this.pumpOpenStatus = false;
-
 	}
 
 	public int getPumpID() {
