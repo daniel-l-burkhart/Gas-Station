@@ -12,7 +12,6 @@ public class Attendant implements Runnable {
 	private boolean keepWorking;
 	private Tank tank;
 	private Pump currentPump;
-	private GasStation gasStation;
 
 	/**
 	 * Attendant constructor.
@@ -60,24 +59,48 @@ public class Attendant implements Runnable {
 			exception.printStackTrace();
 		}
 
+		this.currentPump.lockPump(this);
 		this.busy = false;
+
+		if (this.tank.getAmount() <= 10) {
+			this.tank.fillTank();
+		}
 
 	}
 
-	public void sendSelectedAmount(int randomAmount, Pump pump) {
+	public synchronized void sendSelectedAmount(int randomAmount, Pump pump) {
 
-		pump.activatePump(this);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		if (pump == null) {
+			throw new IllegalArgumentException("Pump is null");
+		}
+
+		while (this.busy) {
+			try {
+				this.wait();
+			} catch (InterruptedException exception) {
+				exception.printStackTrace();
+			}
+		}
+
+		this.notifyAll();
+		this.busy = true;
 		this.currentPump = pump;
-		System.out.println("Pump " + pump.getPumpID() + " has selected " + randomAmount);
+		this.currentPump.activatePump(this);
+
+		System.out.println("Pump " + pump.getPumpID() + " has selected " + randomAmount + " gallons of gas.");
+		this.busy = false;
 	}
 
 	@Override
 	public void run() {
 
 		while (this.keepWorking) {
-			if (this.tank.getAmount() <= 10) {
-				this.tank.fillTank();
-			}
 
 		}
 

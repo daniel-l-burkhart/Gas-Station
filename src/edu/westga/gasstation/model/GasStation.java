@@ -71,7 +71,7 @@ public class GasStation {
 
 		for (Pump currentPump : this.pumps) {
 
-			if (currentPump.getStatus()) {
+			if (currentPump.getQueueCount() == 0) {
 
 				this.openPumps.add(currentPump);
 			}
@@ -82,4 +82,46 @@ public class GasStation {
 
 	}
 
+	public ArrayList<Pump> getPumps() {
+		return this.pumps;
+	}
+
+	public void addCarToQueue(Car car) {
+
+		Pump shortestPump = this.pumps.get(0);
+
+		for (Pump current : this.pumps) {
+
+			if (current.getQueueCount() < shortestPump.getQueueCount()) {
+				shortestPump = current;
+			}
+
+		}
+
+		shortestPump.addToQueue(car);
+	}
+
+	public Pump getOpenPump() {
+
+		Pump openPump;
+
+		if (this.openPumps.size() == 0) {
+			return null;
+		} else {
+			openPump = this.openPumps.get(0);
+			this.openPumps.remove(0);
+		}
+
+		return openPump;
+	}
+
+	public void printPumps() {
+		System.out.println("\nPump Status");
+		for (Pump currentPump : this.pumps) {
+
+			System.out.println("Pump " + currentPump.getPumpID() + " is open: " + currentPump.getStatus());
+			System.out.println("Pump " + currentPump.getPumpID() + " is active: " + currentPump.isPumpActive());
+		}
+		System.out.println("");
+	}
 }

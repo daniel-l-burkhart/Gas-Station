@@ -1,8 +1,7 @@
 package edu.westga.gasstation.model;
 
+import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
-
-import edu.westga.gasstation.controller.GasStationController;
 
 /**
  * The Car class.
@@ -13,7 +12,6 @@ import edu.westga.gasstation.controller.GasStationController;
 public class Car implements Runnable {
 
 	private boolean keepWorking;
-	private Pump openPump;
 	private GasStation gasStation;
 	private Attendant attendant;
 	private String name;
@@ -64,6 +62,8 @@ public class Car implements Runnable {
 
 		while (this.keepWorking) {
 
+			//this.gasStation.printPumps();
+
 			this.pullUpToPump();
 			try {
 				Thread.sleep(2000);
@@ -84,31 +84,66 @@ public class Car implements Runnable {
 
 	private synchronized void pullUpToPump() {
 
-		if (this.gasStation.findOpenPumps().size() != 0) {
-			this.openPump = this.gasStation.findOpenPumps().get(0);
-			this.openPump.claimPump();
-			this.pumpGas();
+		/*
+		 * TODO: This method wrong.
+		 * 
+		 * For some reason only two cars are ever using the pumps, out of the 4
+		 * currently in play
+		 */
+
+		// if (!this.gasStation.areThereAnyOpenPumps()) {
+		// this.gasStation.addCarToQueue(this);
+		// }
+
+		while (this.gasStation.findOpenPumps().size() == 0) {
+			try {
+				System.out.println("No open pumps. Car is waiting.");
+				this.wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
+
+		this.notifyAll();
+
+		if (this.gasStation.findOpenPumps().size() != 0) {
+
+			Pump openPump = this.gasStation.getOpenPump();
+
+			if (openPump.getStatus()) {
+				openPump.claimPump(this);
+				this.pumpGas(openPump);
+			}
+
+		}
+
 	}
 
-	private synchronized void pumpGas() {
+	private synchronized void pumpGas(Pump openPump) {
 
-		System.out.println(this.name + " has pulled up to pump " + this.openPump.getPumpID());
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		System.out.println(this.name + " has pulled up to pump " + openPump.getPumpID());
 
 		this.randomAmount = ThreadLocalRandom.current().nextInt(1, 3 + 1);
 
-		this.openPump.sendSelectedAmountToAttendant(this.randomAmount);
+		openPump.sendSelectedAmountToAttendant(this.randomAmount);
 
-		if (this.openPump.isPumpActive()) {
-			this.openPump.pumpGas(this.randomAmount);
+		if (openPump.isPumpActive()) {
+
+			openPump.pumpGas(this.randomAmount);
 
 			System.out.println(this.name + " has pumped " + this.randomAmount + " gallon(s) of gas from pump "
-					+ this.openPump.getPumpID());
+					+ openPump.getPumpID());
 
 			this.payCashier();
-			int pump = this.openPump.leavePump();
+			openPump.leavePump();
 
-			System.out.println(this.name + " has left pump " + pump);
+			System.out.println(this.name + " has left pump " + openPump.getPumpID());
 
 		}
 

@@ -1,5 +1,7 @@
 package edu.westga.gasstation.model;
 
+import java.util.ArrayList;
+
 /**
  * Model class that controls one single pump at the gas station
  * 
@@ -8,19 +10,21 @@ package edu.westga.gasstation.model;
  */
 public class Pump {
 
-	private boolean pumpStatus;
+	private boolean pumpOpenStatus;
 	private int id;
 	private Attendant attendant;
 	private boolean pumpActive;
 	private Tank tank;
+	private ArrayList<Car> queue;
 
 	/**
 	 * Private constructor ensuring use of parameterized constructor.
 	 */
 	private Pump() {
-		this.pumpStatus = true;
+		this.pumpOpenStatus = true;
 		this.id = 0;
 		this.pumpActive = false;
+		this.queue = new ArrayList<Car>();
 
 	}
 
@@ -52,7 +56,7 @@ public class Pump {
 	 * @return True if pump is open false otherwise.
 	 */
 	public synchronized boolean getStatus() {
-		return this.pumpStatus;
+		return this.pumpOpenStatus;
 	}
 
 	/**
@@ -77,7 +81,7 @@ public class Pump {
 	 */
 	public synchronized int pullUpToPump() {
 
-		this.pumpStatus = false;
+		this.pumpOpenStatus = false;
 		return this.id;
 	}
 
@@ -85,15 +89,14 @@ public class Pump {
 		return this.pumpActive;
 	}
 
-	public synchronized int leavePump() {
+	public synchronized void leavePump() {
 
-		if (this.pumpStatus) {
+		if (this.pumpOpenStatus) {
 			throw new IllegalStateException("No one is at pump");
 		}
 
-		this.pumpStatus = true;
-		this.pumpActive = false;
-		return this.id;
+		this.pumpOpenStatus = true;
+
 	}
 
 	public void sendSelectedAmountToAttendant(int randomAmount) {
@@ -106,14 +109,36 @@ public class Pump {
 		System.out.println("Attendant has unlocked pump " + this.id);
 	}
 
-	public void claimPump() {
-
-		this.pumpStatus = false;
+	public synchronized void claimPump(Car car) {
+		
+		
+		if (this.pumpOpenStatus == false) {
+			throw new IllegalStateException("Pump is already claimed");
+		}
+		
+		this.pumpOpenStatus = false;
 
 	}
 
 	public int getPumpID() {
 		return this.id;
+	}
+
+	public void lockPump(Attendant attendant) {
+
+		if (attendant == null) {
+			throw new IllegalArgumentException("Attendant is null");
+		}
+
+		this.pumpActive = false;
+	}
+
+	public int getQueueCount() {
+		return this.queue.size();
+	}
+
+	public void addToQueue(Car car) {
+		this.queue.add(car);
 	}
 
 }

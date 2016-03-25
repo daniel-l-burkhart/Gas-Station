@@ -31,12 +31,10 @@ public class GasStationController {
 	 */
 	public GasStationController() {
 
-		
 		this.tank = new Tank();
 
 		this.attendant = new Attendant(this.tank);
 		this.gasStation = new GasStation(2, this.attendant, this.tank);
-	
 
 		this.adamCar = new Car(this.gasStation, this.attendant, "Adam");
 		this.brianCar = new Car(this.gasStation, this.attendant, "Bryan");
@@ -44,9 +42,13 @@ public class GasStationController {
 		this.jonCar = new Car(this.gasStation, this.attendant, "Jon");
 
 		this.adamThread = new Thread(this.adamCar);
+		this.adamThread.setName("Adam");
 		this.brianThread = new Thread(this.brianCar);
+		this.adamThread.setName("Brian");
 		this.jamesThread = new Thread(this.jamesCar);
+		this.jamesThread.setName("James");
 		this.jonThread = new Thread(this.jonCar);
+		this.jonThread.setName("Jon");
 
 	}
 
@@ -61,7 +63,6 @@ public class GasStationController {
 		this.brianThread.start();
 		this.jamesThread.start();
 		this.jonThread.start();
-
 
 		try {
 			Thread.sleep(15 * 1000);
