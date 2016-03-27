@@ -25,12 +25,14 @@ public class Car implements Runnable {
 	}
 
 	/**
-	 * Constructor that initializes car object
-	 * 
+	 * Constructor that initializes car object.
+	 *
 	 * @param gasStation
 	 *            The gas station the car is at
 	 * @param attendant
 	 *            The cashier of the gas station.
+	 * @param name
+	 *            the name of the customer
 	 */
 	public Car(GasStation gasStation, Attendant attendant, String name) {
 
@@ -97,8 +99,8 @@ public class Car implements Runnable {
 
 		try {
 			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		} catch (InterruptedException exception) {
+			exception.printStackTrace();
 		}
 
 		System.out.println(this.name + " has pulled up to pump " + openPump.getPumpID());
@@ -112,7 +114,7 @@ public class Car implements Runnable {
 			openPump.pumpGas(this.randomAmount);
 
 			System.out.println(this.name + " has pumped " + this.randomAmount + " gallon(s) of gas from pump "
-					+ openPump.getPumpID());
+							+ openPump.getPumpID());
 
 			this.payCashier();
 

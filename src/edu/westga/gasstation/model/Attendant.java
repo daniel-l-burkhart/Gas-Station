@@ -15,6 +15,9 @@ public class Attendant implements Runnable {
 
 	/**
 	 * Attendant constructor.
+	 *
+	 * @param tank
+	 *            the tank
 	 */
 	public Attendant(Tank tank) {
 
@@ -65,8 +68,6 @@ public class Attendant implements Runnable {
 	 */
 	public synchronized void sendSelectedAmount(int amountOfGas, Pump pump) {
 
-		
-
 		if (pump == null) {
 			throw new IllegalArgumentException("Pump is null");
 		}
@@ -100,14 +101,18 @@ public class Attendant implements Runnable {
 
 			if (!this.busy) {
 
-				if (this.tank.getAmount() <= 10) {
-					this.tank.fillTank();
-				}
+				this.checkTank();
 
 			}
 
 		}
 
+	}
+
+	private void checkTank() {
+		if (this.tank.getAmount() <= 10) {
+			this.tank.fillTank();
+		}
 	}
 
 	/**

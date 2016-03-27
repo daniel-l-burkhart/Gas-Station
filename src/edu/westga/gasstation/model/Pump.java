@@ -29,12 +29,16 @@ public class Pump {
 	}
 
 	/**
-	 * Constructor that initializes a tank's attributes
-	 * 
+	 * Constructor that initializes a tank's attributes.
+	 *
+	 * @param pumpId
+	 *            the pump id
+	 * @param attendant
+	 *            the attendant
 	 * @param tank
 	 *            The tank.
 	 */
-	public Pump(int ID, Attendant attendant, Tank tank) {
+	public Pump(int pumpId, Attendant attendant, Tank tank) {
 
 		this();
 
@@ -46,7 +50,7 @@ public class Pump {
 
 		this.attendant = attendant;
 		this.tank = tank;
-		this.id = ID;
+		this.id = pumpId;
 
 	}
 
@@ -68,12 +72,13 @@ public class Pump {
 	 */
 	public void pumpGas(int amount) {
 
+		if (amount < 0) {
+			throw new IllegalArgumentException("cannot pump negative gas");
+		}
+
 		this.lock.lock();
 
 		if (this.pumpActive) {
-			if (amount < 0) {
-				throw new IllegalArgumentException("cannot pump negative gas");
-			}
 
 			this.tank.withdrawGasoline(amount);
 		}
@@ -134,7 +139,7 @@ public class Pump {
 	 */
 	public synchronized boolean claimPump(Car car) {
 
-		if (this.pumpOpenStatus == false) {
+		if (!this.pumpOpenStatus) {
 			return false;
 		}
 

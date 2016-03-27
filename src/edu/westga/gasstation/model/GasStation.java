@@ -21,10 +21,14 @@ public class GasStation {
 	}
 
 	/**
-	 * Constructor that makes a new gas station with number of pumps
-	 * 
+	 * Constructor that makes a new gas station with number of pumps.
+	 *
 	 * @param numberOfPumps
 	 *            the number of pumps at this gas station.
+	 * @param attendant
+	 *            the attendant
+	 * @param tank
+	 *            the tank
 	 */
 	public GasStation(int numberOfPumps, Attendant attendant, Tank tank) {
 
