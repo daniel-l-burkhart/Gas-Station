@@ -1,11 +1,10 @@
 package edu.westga.gasstation.model;
 
-import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Model class that controls one single pump at the gas station
- *
+ * 
  * @author Daniel Burkhart
  * @version Spring 2016
  */
@@ -16,34 +15,30 @@ public class Pump {
 	private Attendant attendant;
 	private boolean pumpActive;
 	private Tank tank;
-	private ArrayList<Car> queue;
 	private ReentrantLock lock;
 
 	/**
 	 * Private constructor ensuring use of parameterized constructor.
 	 */
 	private Pump() {
-
-		this.lock = new ReentrantLock(true);
-
 		this.pumpOpenStatus = true;
 		this.id = 0;
 		this.pumpActive = false;
-		this.queue = new ArrayList<Car>();
+		this.lock = new ReentrantLock(true);
 
 	}
 
-	/*
-	 * Reentrant lock(true) fill gas
-	 */
-
 	/**
-	 * Constructor that initializes a tank's attributes
+	 * Constructor that initializes a tank's attributes.
 	 *
+	 * @param pumpId
+	 *            the pump id
+	 * @param attendant
+	 *            the attendant
 	 * @param tank
 	 *            The tank.
 	 */
-	public Pump(int ID, Attendant attendant, Tank tank) {
+	public Pump(int pumpId, Attendant attendant, Tank tank) {
 
 		this();
 
@@ -55,36 +50,35 @@ public class Pump {
 
 		this.attendant = attendant;
 		this.tank = tank;
-		this.id = ID;
+		this.id = pumpId;
 
 	}
 
 	/**
 	 * Checks to see if pump is open
-	 *
+	 * 
 	 * @return True if pump is open false otherwise.
 	 */
-	public synchronized boolean getStatus() {
-		return this.lock.hasQueuedThreads();
+	public boolean getStatus() {
+
+		return this.pumpOpenStatus;
 	}
 
 	/**
 	 * Pumps gas from the tank
-	 *
+	 * 
 	 * @param amount
 	 *            The amount to be withdrawn from the tank.
-	 * @param name
 	 */
-	public synchronized void pumpGas(int amount, String name) {
+	public void pumpGas(int amount) {
+
+		if (amount < 0) {
+			throw new IllegalArgumentException("cannot pump negative gas");
+		}
 
 		this.lock.lock();
 
-		System.out.println(name + " has pulled up to pump " + this.id);
-
 		if (this.pumpActive) {
-			if (amount < 0) {
-				throw new IllegalArgumentException("cannot pump negative gas");
-			}
 
 			this.tank.withdrawGasoline(amount);
 		}
@@ -93,19 +87,18 @@ public class Pump {
 	}
 
 	/**
-	 * Called when car pulls up to pump
+	 * Gets the active status of the pump, set by the attendant
+	 * 
+	 * @return True if pump is active, false otherwise.
 	 */
-	public synchronized int pullUpToPump() {
-
-		this.pumpOpenStatus = false;
-		return this.id;
-	}
-
 	public boolean isPumpActive() {
 		return this.pumpActive;
 	}
 
-	public synchronized void leavePump() {
+	/**
+	 * Updates pump's open status after customer leaves.
+	 */
+	public void leavePump() {
 
 		if (this.pumpOpenStatus) {
 			throw new IllegalStateException("No one is at pump");
@@ -115,20 +108,61 @@ public class Pump {
 
 	}
 
-	public void sendSelectedAmountToAttendant(int randomAmount) {
+	/**
+	 * Sends the amount from the customer to the attendant
+	 * 
+	 * @param amountOfGas
+	 *            The amount of gas sent to the attendant through he pump
+	 */
+	public void sendSelectedAmountToAttendant(int amountOfGas) {
 
-		this.attendant.sendSelectedAmount(randomAmount, this);
+		this.attendant.sendSelectedAmount(amountOfGas, this);
 	}
 
+	/**
+	 * Activates the pump, allowing the the pump to function.
+	 * 
+	 * @param attendant
+	 *            The attendant that unlocks the pump
+	 */
 	public void activatePump(Attendant attendant) {
 		this.pumpActive = true;
 		System.out.println("Attendant has unlocked pump " + this.id);
 	}
 
+	/**
+	 * Claims the pump
+	 * 
+	 * @param car
+	 *            The car who wants to claim the pump
+	 * @return True if pump has been claimed successfully, false otherwise
+	 */
+	public synchronized boolean claimPump(Car car) {
+
+		if (!this.pumpOpenStatus) {
+			return false;
+		}
+
+		this.pumpOpenStatus = false;
+		return true;
+
+	}
+
+	/**
+	 * Returns the id of the pump
+	 * 
+	 * @return The integer value that identifies each pump uniquely
+	 */
 	public int getPumpID() {
 		return this.id;
 	}
 
+	/**
+	 * Locks the pump after the paying of a customer.
+	 * 
+	 * @param attendant
+	 *            The attendant who locks the pump
+	 */
 	public void lockPump(Attendant attendant) {
 
 		if (attendant == null) {
@@ -136,14 +170,6 @@ public class Pump {
 		}
 
 		this.pumpActive = false;
-	}
-
-	public int getQueueCount() {
-		return this.queue.size();
-	}
-
-	public void addToQueue(Car car) {
-		this.queue.add(car);
 	}
 
 }

@@ -7,8 +7,8 @@ import edu.westga.gasstation.model.Tank;
 
 /**
  * Controller class for gas station.
- *
- * @author danielburkhart
+ * 
+ * @author Daniel Burkhart
  * @version Spring 2016
  */
 public class GasStationController {
@@ -23,7 +23,6 @@ public class GasStationController {
 	private Thread brianThread;
 	private Thread jamesThread;
 	private Thread jonThread;
-	private Thread gasStationThread;
 	private Tank tank;
 
 	private static final int NUMBER_OF_PUMPS = 2;
@@ -39,16 +38,19 @@ public class GasStationController {
 		this.gasStation = new GasStation(NUMBER_OF_PUMPS, this.attendant, this.tank);
 
 		this.adamCar = new Car(this.gasStation, this.attendant, "Adam");
-		this.brianCar = new Car(this.gasStation, this.attendant, "Bryan");
+		this.brianCar = new Car(this.gasStation, this.attendant, "Brian");
 		this.jamesCar = new Car(this.gasStation, this.attendant, "James");
 		this.jonCar = new Car(this.gasStation, this.attendant, "Jon");
 
 		this.adamThread = new Thread(this.adamCar);
 		this.adamThread.setName("Adam");
+
 		this.brianThread = new Thread(this.brianCar);
 		this.adamThread.setName("Brian");
+
 		this.jamesThread = new Thread(this.jamesCar);
 		this.jamesThread.setName("James");
+
 		this.jonThread = new Thread(this.jonCar);
 		this.jonThread.setName("Jon");
 
@@ -67,7 +69,7 @@ public class GasStationController {
 		this.jonThread.start();
 
 		try {
-			Thread.sleep(15 * 1000);
+			Thread.sleep(30 * 1000);
 		} catch (InterruptedException exception) {
 			exception.printStackTrace();
 		}
@@ -82,6 +84,7 @@ public class GasStationController {
 		this.brianCar.stop();
 		this.jamesCar.stop();
 		this.jonCar.stop();
+		this.gasStation.closeGasStation();
 
 		System.out.println("End");
 	}
